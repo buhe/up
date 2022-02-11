@@ -5,5 +5,5 @@ fn main() {
     // or else some patches to the runtime implemented by esp-idf-sys might not link properly.
     esp_idf_sys::link_patches();
 
-    println!("Hello, world!");
+    println!("Hello, world!bugu22");
 }
