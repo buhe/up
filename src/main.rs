@@ -6,9 +6,11 @@ use embedded_svc::ping::Ping;
 use embedded_svc::wifi::Wifi;
 use embedded_svc::{wifi::{Configuration, ClientConfiguration, AccessPointConfiguration, Status, ClientStatus, ClientConnectionStatus, ClientIpStatus, ApIpStatus, ApStatus}, ipv4};
 use esp_idf_svc::{netif::EspNetifStack, sysloop::EspSysLoopStack, nvs::EspDefaultNvs, wifi::EspWifi, ping};
-use esp_idf_sys as _;
+// use esp_idf_sys as _;
 use log::info; // If using the `binstart` feature of `esp-idf-sys`, always keep this module imported
-
+use embedded_svc::http::{client::*};
+use embedded_svc::io::Bytes;
+use esp_idf_svc::http::client::*;
 
 const SSID: &str = "Xiaomi_85FE";
 const PASS: &str = "aa11aa041212";
@@ -25,14 +27,32 @@ fn main() -> Result<()> {
      let sys_loop_stack = Arc::new(EspSysLoopStack::new()?);
     let default_nvs = Arc::new(EspDefaultNvs::new()?);
 
-     let mut wifi = wifi(
+     let wifi = wifi(
         netif_stack.clone(),
         sys_loop_stack.clone(),
         default_nvs.clone(),
     )?;
 
+    let url = String::from("https://api.github.com/users/buhe/followers");
+
+    info!("About to fetch content from {}", url);
+
+    let mut client = EspHttpClient::new_default()?;
+
+    let response = client.get(&url)?.submit()?;
+
+    let body: Result<Vec<u8>, _> = Bytes::<_, 64>::new(response.reader()).collect();
+
+    let body = body?;
+
+    println!(
+        "Body \n{:?}",
+        String::from_utf8_lossy(&body).into_owned()
+    );
+
 
     println!("Hello, world!bugu22");
+    drop(wifi);
     Ok({})
 }
 
