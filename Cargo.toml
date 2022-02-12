@@ -17,7 +17,12 @@ native = ["esp-idf-sys/native"]
 
 [dependencies]
 esp-idf-sys = { version = "0.30.3", features = ["binstart"] }
-
+esp-idf-svc = "0.36.9"
+esp-idf-hal = "0.32.9"
+embedded-svc = "0.16"
+embedded-hal = "0.2"
+anyhow = {version = "1", features = ["backtrace"]}
+log = "0.4"
 
 [build-dependencies]
 embuild = "0.28"

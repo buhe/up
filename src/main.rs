@@ -1,9 +1,114 @@
-use esp_idf_sys as _; // If using the `binstart` feature of `esp-idf-sys`, always keep this module imported
+use std::sync::Arc;
+use anyhow::bail;
+use anyhow::Result;
 
-fn main() {
+use embedded_svc::ping::Ping;
+use embedded_svc::wifi::Wifi;
+use embedded_svc::{wifi::{Configuration, ClientConfiguration, AccessPointConfiguration, Status, ClientStatus, ClientConnectionStatus, ClientIpStatus, ApIpStatus, ApStatus}, ipv4};
+use esp_idf_svc::{netif::EspNetifStack, sysloop::EspSysLoopStack, nvs::EspDefaultNvs, wifi::EspWifi, ping};
+use esp_idf_sys as _;
+use log::info; // If using the `binstart` feature of `esp-idf-sys`, always keep this module imported
+
+
+const SSID: &str = "Xiaomi_85FE";
+const PASS: &str = "aa11aa041212";
+
+// const SSID: &str = env!("RUST_ESP32_STD_DEMO_WIFI_SSID");
+// const PASS: &str = env!("RUST_ESP32_STD_DEMO_WIFI_PASS");
+
+fn main() -> Result<()> {
     // Temporary. Will disappear once ESP-IDF 4.4 is released, but for now it is necessary to call this function once,
     // or else some patches to the runtime implemented by esp-idf-sys might not link properly.
     esp_idf_sys::link_patches();
+    
+    let netif_stack = Arc::new(EspNetifStack::new()?);
+     let sys_loop_stack = Arc::new(EspSysLoopStack::new()?);
+    let default_nvs = Arc::new(EspDefaultNvs::new()?);
+
+     let mut wifi = wifi(
+        netif_stack.clone(),
+        sys_loop_stack.clone(),
+        default_nvs.clone(),
+    )?;
+
 
     println!("Hello, world!bugu22");
+    Ok({})
+}
+
+fn wifi(
+    netif_stack: Arc<EspNetifStack>,
+    sys_loop_stack: Arc<EspSysLoopStack>,
+    default_nvs: Arc<EspDefaultNvs>,
+) -> Result<Box<EspWifi>> {
+    let mut wifi = Box::new(EspWifi::new(netif_stack, sys_loop_stack, default_nvs)?);
+
+    info!("Wifi created, about to scan");
+
+    let ap_infos = wifi.scan()?;
+
+    let ours = ap_infos.into_iter().find(|a| a.ssid == SSID);
+
+    let channel = if let Some(ours) = ours {
+        info!(
+            "Found configured access point {} on channel {}",
+            SSID, ours.channel
+        );
+        Some(ours.channel)
+    } else {
+        info!(
+            "Configured access point {} not found during scanning, will go with unknown channel",
+            SSID
+        );
+        None
+    };
+
+    wifi.set_configuration(&Configuration::Mixed(
+        ClientConfiguration {
+            ssid: SSID.into(),
+            password: PASS.into(),
+            channel,
+            ..Default::default()
+        },
+        AccessPointConfiguration {
+            ssid: "aptest".into(),
+            channel: channel.unwrap_or(1),
+            ..Default::default()
+        },
+    ))?;
+
+    info!("Wifi configuration set, about to get status");
+
+    let status = wifi.get_status();
+
+    if let Status(
+        ClientStatus::Started(ClientConnectionStatus::Connected(ClientIpStatus::Done(ip_settings))),
+        ApStatus::Started(ApIpStatus::Done),
+    ) = status
+    {
+        println!("Wifi connected");
+
+        ping(&ip_settings)?;
+    } else {
+        bail!("Unexpected Wifi status: {:?}", status);
+    }
+
+    Ok(wifi)
+}
+
+fn ping(ip_settings: &ipv4::ClientSettings) -> Result<()> {
+    info!("About to do some pings for {:?}", ip_settings);
+
+    let ping_summary =
+        ping::EspPing::default().ping(ip_settings.subnet.gateway, &Default::default())?;
+    if ping_summary.transmitted != ping_summary.received {
+        bail!(
+            "Pinging gateway {} resulted in timeouts",
+            ip_settings.subnet.gateway
+        );
+    }
+
+    info!("Pinging done");
+
+    Ok(())
 }
