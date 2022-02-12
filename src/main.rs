@@ -9,11 +9,8 @@ use embedded_svc::{wifi::{Configuration, ClientConfiguration, AccessPointConfigu
 use esp_idf_svc::{netif::EspNetifStack, sysloop::EspSysLoopStack, nvs::EspDefaultNvs, wifi::EspWifi, ping};
 // use esp_idf_sys as _;
 use log::info; // If using the `binstart` feature of `esp-idf-sys`, always keep this module imported
+use esp_idf_svc::http::client::EspHttpClient;
 use embedded_svc::http::{client::*};
-use embedded_svc::io::Bytes;
-use esp_idf_svc::http::client::*;
-
-use crate::github::user::User;
 
 const SSID: &str = "Xiaomi_85FE";
 const PASS: &str = "aa11aa041212";
@@ -22,6 +19,8 @@ const PASS: &str = "aa11aa041212";
 // const PASS: &str = env!("RUST_ESP32_STD_DEMO_WIFI_PASS");
 
 mod github;
+mod bilibili;
+pub mod profile;
 
 fn main() -> Result<()> {
     // Temporary. Will disappear once ESP-IDF 4.4 is released, but for now it is necessary to call this function once,
@@ -32,34 +31,43 @@ fn main() -> Result<()> {
     let sys_loop_stack = Arc::new(EspSysLoopStack::new()?);
     let default_nvs = Arc::new(EspDefaultNvs::new()?);
 
-     let wifi = wifi(
+     let _wifi = wifi(
         netif_stack.clone(),
         sys_loop_stack.clone(),
         default_nvs.clone(),
     )?;
 
-    let url = String::from("https://api.github.com/users/buhe/followers");
+    // let url = String::from("https://api.github.com/users/buhe/followers");
 
-    info!("About to fetch content from {}", url);
+    // info!("About to fetch content from {}", url);
 
-    let mut client = EspHttpClient::new_default()?;
+    // let mut client = EspHttpClient::new_default()?;
 
-    let response = client.get(&url)?.submit()?;
+    // let response = client.get(&url)?.submit()?;
 
-    let body: Result<Vec<u8>, _> = Bytes::<_, 64>::new(response.reader()).collect();
+    // let body: Result<Vec<u8>, _> = Bytes::<_, 64>::new(response.reader()).collect();
 
-    let body = body?;
-    let str = String::from_utf8_lossy(&body).into_owned();
+    // let body = body?;
+    // let str = String::from_utf8_lossy(&body).into_owned();
     // println!(
     //     "Body \n{:?}",
     //     &str
     // );
 
-    let users: Vec<User> = serde_json::from_str(&str).unwrap();
-    println!("Hello, world!bugu22: {:?}", users.len());
+    // let users: Vec<User> = serde_json::from_str(&str).unwrap();
+    // println!("Hello, world!bugu22: {:?}", users.len());
+    let mut client = EspHttpClient::new_default()?;
     loop {
-        println!("...");
-        thread::sleep(Duration::from_millis(2000));
+        println!("...start...");
+        let mut res = vec![];
+        res.push(github::init(&mut client)?);
+        res.push(bilibili::init(&mut client)?);
+        
+        for r in  res {
+            println!("{:?}", r);
+        }
+        println!("...end...");
+        thread::sleep(Duration::from_millis(20000));
     }
     drop(wifi);
     Ok({})
