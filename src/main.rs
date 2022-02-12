@@ -48,17 +48,15 @@ fn main() -> Result<()> {
     //     "Body \n{:?}",
     //     &str
     // );
-
+    let _wifi = wifi(
+        netif_stack.clone(),
+        sys_loop_stack.clone(),
+        default_nvs.clone(),
+    )?;
     // let users: Vec<User> = serde_json::from_str(&str).unwrap();
     // println!("Hello, world!bugu22: {:?}", users.len());
     let mut i = 0;
     loop {
-        
-        let wifi = wifi(
-            netif_stack.clone(),
-            sys_loop_stack.clone(),
-            default_nvs.clone(),
-        )?;
         // println!("...start...");
         let mut client = EspHttpClient::new_default()?;
         let mut res = vec![];
@@ -69,7 +67,7 @@ fn main() -> Result<()> {
             println!("{:?}", r);
         }
         drop(client);
-        drop(wifi);
+        // drop(wifi);
         i = i + 1;
         println!("...{}...", i);
         
