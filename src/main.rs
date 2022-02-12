@@ -3,10 +3,10 @@ use std::{thread, time::Duration};
 use anyhow::bail;
 use anyhow::Result;
 
-use embedded_svc::ping::Ping;
+// use embedded_svc::ping::Ping;
 use embedded_svc::wifi::Wifi;
-use embedded_svc::{wifi::{Configuration, ClientConfiguration, AccessPointConfiguration, Status, ClientStatus, ClientConnectionStatus, ClientIpStatus, ApIpStatus, ApStatus}, ipv4};
-use esp_idf_svc::{netif::EspNetifStack, sysloop::EspSysLoopStack, nvs::EspDefaultNvs, wifi::EspWifi, ping};
+use embedded_svc::{wifi::{Configuration, ClientConfiguration, Status, ClientStatus, ClientConnectionStatus, ClientIpStatus, ApStatus}};
+use esp_idf_svc::{netif::EspNetifStack, sysloop::EspSysLoopStack, nvs::EspDefaultNvs, wifi::EspWifi};
 // use esp_idf_sys as _;
 // use log::info; // If using the `binstart` feature of `esp-idf-sys`, always keep this module imported
 use esp_idf_svc::http::client::EspHttpClient;
@@ -103,18 +103,28 @@ fn wifi(
         None
     };
 
-    wifi.set_configuration(&Configuration::Mixed(
+    // wifi.set_configuration(&Configuration::Mixed(
+    //     ClientConfiguration {
+    //         ssid: SSID.into(),
+    //         password: PASS.into(),
+    //         channel,
+    //         ..Default::default()
+    //     },
+    //     AccessPointConfiguration {
+    //         ssid: "aptest".into(),
+    //         channel: channel.unwrap_or(1),
+    //         ..Default::default()
+    //     },
+    // ))?;
+
+
+    wifi.set_configuration(&Configuration::Client(
         ClientConfiguration {
             ssid: SSID.into(),
             password: PASS.into(),
             channel,
             ..Default::default()
-        },
-        AccessPointConfiguration {
-            ssid: "aptest".into(),
-            channel: channel.unwrap_or(1),
-            ..Default::default()
-        },
+        }
     ))?;
 
     // info!("Wifi configuration set, about to get status");
@@ -122,13 +132,13 @@ fn wifi(
     let status = wifi.get_status();
 
     if let Status(
-        ClientStatus::Started(ClientConnectionStatus::Connected(ClientIpStatus::Done(ip_settings))),
-        ApStatus::Started(ApIpStatus::Done),
+        ClientStatus::Started(ClientConnectionStatus::Connected(ClientIpStatus::Done(_ip_settings))),
+        ApStatus::Stopped
     ) = status
     {
         // println!("Wifi connected");
 
-        ping(&ip_settings)?;
+        // ping(&ip_settings)?;
     } else {
         bail!("Unexpected Wifi status: {:?}", status);
     }
@@ -136,19 +146,19 @@ fn wifi(
     Ok(wifi)
 }
 
-fn ping(ip_settings: &ipv4::ClientSettings) -> Result<()> {
-    // info!("About to do some pings for {:?}", ip_settings);
+// fn ping(ip_settings: &ipv4::ClientSettings) -> Result<()> {
+//     // info!("About to do some pings for {:?}", ip_settings);
 
-    let ping_summary =
-        ping::EspPing::default().ping(ip_settings.subnet.gateway, &Default::default())?;
-    if ping_summary.transmitted != ping_summary.received {
-        bail!(
-            "Pinging gateway {} resulted in timeouts",
-            ip_settings.subnet.gateway
-        );
-    }
+//     let ping_summary =
+//         ping::EspPing::default().ping(ip_settings.subnet.gateway, &Default::default())?;
+//     if ping_summary.transmitted != ping_summary.received {
+//         bail!(
+//             "Pinging gateway {} resulted in timeouts",
+//             ip_settings.subnet.gateway
+//         );
+//     }
 
-    // info!("Pinging done");
+//     // info!("Pinging done");
 
-    Ok(())
-}
+//     Ok(())
+// }
