@@ -65,9 +65,9 @@ fn main() -> Result<()> {
         res.push(github::init(&mut client)?);
         res.push(bilibili::init(&mut client)?);
         
-        // for r in  res {
-            // println!("{:?}", r);
-        // }
+        for r in  res {
+            println!("{:?}", r);
+        }
         drop(client);
         drop(wifi);
         i = i + 1;
