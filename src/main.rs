@@ -12,11 +12,15 @@ use embedded_svc::http::{client::*};
 use embedded_svc::io::Bytes;
 use esp_idf_svc::http::client::*;
 
+use crate::github::user::User;
+
 const SSID: &str = "Xiaomi_85FE";
 const PASS: &str = "aa11aa041212";
 
 // const SSID: &str = env!("RUST_ESP32_STD_DEMO_WIFI_SSID");
 // const PASS: &str = env!("RUST_ESP32_STD_DEMO_WIFI_PASS");
+
+mod github;
 
 fn main() -> Result<()> {
     // Temporary. Will disappear once ESP-IDF 4.4 is released, but for now it is necessary to call this function once,
@@ -44,14 +48,14 @@ fn main() -> Result<()> {
     let body: Result<Vec<u8>, _> = Bytes::<_, 64>::new(response.reader()).collect();
 
     let body = body?;
-
+    let str = String::from_utf8_lossy(&body).into_owned();
     println!(
         "Body \n{:?}",
-        String::from_utf8_lossy(&body).into_owned()
+        &str
     );
 
-
-    println!("Hello, world!bugu22");
+    let users: Vec<User> = serde_json::from_str(&str).unwrap();
+    println!("Hello, world!bugu22: {:?}", users.len());
     drop(wifi);
     Ok({})
 }
