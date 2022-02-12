@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::{thread, time::Duration};
 use anyhow::bail;
 use anyhow::Result;
 
@@ -26,9 +27,9 @@ fn main() -> Result<()> {
     // Temporary. Will disappear once ESP-IDF 4.4 is released, but for now it is necessary to call this function once,
     // or else some patches to the runtime implemented by esp-idf-sys might not link properly.
     esp_idf_sys::link_patches();
-    
+
     let netif_stack = Arc::new(EspNetifStack::new()?);
-     let sys_loop_stack = Arc::new(EspSysLoopStack::new()?);
+    let sys_loop_stack = Arc::new(EspSysLoopStack::new()?);
     let default_nvs = Arc::new(EspDefaultNvs::new()?);
 
      let wifi = wifi(
@@ -49,13 +50,17 @@ fn main() -> Result<()> {
 
     let body = body?;
     let str = String::from_utf8_lossy(&body).into_owned();
-    println!(
-        "Body \n{:?}",
-        &str
-    );
+    // println!(
+    //     "Body \n{:?}",
+    //     &str
+    // );
 
     let users: Vec<User> = serde_json::from_str(&str).unwrap();
     println!("Hello, world!bugu22: {:?}", users.len());
+    loop {
+        println!("...");
+        thread::sleep(Duration::from_millis(2000));
+    }
     drop(wifi);
     Ok({})
 }
