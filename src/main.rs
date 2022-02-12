@@ -10,7 +10,6 @@ use esp_idf_svc::{netif::EspNetifStack, sysloop::EspSysLoopStack, nvs::EspDefaul
 // use esp_idf_sys as _;
 use log::info; // If using the `binstart` feature of `esp-idf-sys`, always keep this module imported
 use esp_idf_svc::http::client::EspHttpClient;
-use embedded_svc::http::{client::*};
 
 const SSID: &str = "Xiaomi_85FE";
 const PASS: &str = "aa11aa041212";
@@ -69,6 +68,7 @@ fn main() -> Result<()> {
         println!("...end...");
         thread::sleep(Duration::from_millis(20000));
     }
+    drop(client);
     drop(wifi);
     Ok({})
 }
