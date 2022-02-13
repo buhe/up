@@ -17,7 +17,7 @@ const PASS: &str = "aa11aa041212";
 // const SSID: &str = env!("RUST_ESP32_STD_DEMO_WIFI_SSID");
 // const PASS: &str = env!("RUST_ESP32_STD_DEMO_WIFI_PASS");
 
-mod github;
+// mod github;
 mod bilibili;
 pub mod profile;
 
@@ -60,7 +60,7 @@ fn main() -> Result<()> {
         // println!("...start...");
         let mut client = EspHttpClient::new_default()?;
         let mut res = vec![];
-        res.push(github::init(&mut client)?);
+        // res.push(github::init(&mut client)?);
         res.push(bilibili::init(&mut client)?);
         
         for r in  res {

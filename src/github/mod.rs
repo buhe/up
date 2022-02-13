@@ -28,9 +28,17 @@ pub fn init(client: &mut EspHttpClient) -> Result<Profile> {
     // );
 
     let users: Vec<User> = serde_json::from_str(&str).unwrap();
+
+    let url = String::from("https://api.github.com/users/buhe/following");
+    let response = client.get(&url)?.submit()?;
+    let body: Result<Vec<u8>, _> = Bytes::<_, 64>::new(response.reader()).collect();
+
+    let body = body?;
+    let str = String::from_utf8_lossy(&body).into_owned();
+    let following_users: Vec<User> = serde_json::from_str(&str).unwrap();
     // println!("Hello, world!bugu22: {:?}", users.len());
     Ok(Profile{followers: users.len(),
-        followings: 0,
+        followings: following_users.len(),
         starts: 0,
         display: "buhe".to_string(),
         avatar: "".to_string(), 
