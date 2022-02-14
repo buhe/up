@@ -4,12 +4,28 @@ use anyhow::bail;
 use anyhow::Result;
 
 // use embedded_svc::ping::Ping;
+use embedded_svc::utils::anyerror::*;
 use embedded_svc::wifi::Wifi;
 use embedded_svc::{wifi::{Configuration, ClientConfiguration, Status, ClientStatus, ClientConnectionStatus, ClientIpStatus, ApStatus}};
 use esp_idf_svc::{netif::EspNetifStack, sysloop::EspSysLoopStack, nvs::EspDefaultNvs, wifi::EspWifi};
 // use esp_idf_sys as _;
 // use log::info; // If using the `binstart` feature of `esp-idf-sys`, always keep this module imported
 use esp_idf_svc::http::client::EspHttpClient;
+
+use embedded_hal::digital::v2::OutputPin;
+
+use esp_idf_hal::delay;
+use esp_idf_hal::gpio;
+use esp_idf_hal::prelude::*;
+use esp_idf_hal::spi;
+
+use display_interface_spi::SPIInterfaceNoCS;
+
+use embedded_graphics::mono_font::{ascii::FONT_10X20, MonoTextStyle};
+use embedded_graphics::pixelcolor::*;
+use embedded_graphics::prelude::*;
+use embedded_graphics::primitives::*;
+use embedded_graphics::text::*;
 
 const SSID: &str = "Xiaomi_85FE";
 const PASS: &str = "aa11aa041212";
@@ -30,7 +46,8 @@ fn main() -> Result<()> {
     let sys_loop_stack = Arc::new(EspSysLoopStack::new()?);
     let default_nvs = Arc::new(EspDefaultNvs::new()?);
 
-
+    let peripherals = Peripherals::take().unwrap();
+    let pins = peripherals.pins;
 
     // let url = String::from("https://api.github.com/users/buhe/followers");
 
@@ -55,6 +72,15 @@ fn main() -> Result<()> {
     )?;
     // let users: Vec<User> = serde_json::from_str(&str).unwrap();
     // println!("Hello, world!bugu22: {:?}", users.len());
+    lcd(
+        pins.gpio4,
+        pins.gpio16,
+        pins.gpio23,
+        peripherals.spi2,
+        pins.gpio18,
+        pins.gpio19,
+        pins.gpio5,
+    )?;
     let mut i = 0;
     loop {
         // println!("...start...");
@@ -74,6 +100,81 @@ fn main() -> Result<()> {
         // println!("...end...");
         thread::sleep(Duration::from_millis(20000));
     }
+}
+
+fn lcd(
+    backlight: gpio::Gpio4<gpio::Unknown>,
+    dc: gpio::Gpio16<gpio::Unknown>,
+    rst: gpio::Gpio23<gpio::Unknown>,
+    spi: spi::SPI2,
+    sclk: gpio::Gpio18<gpio::Unknown>,
+    sdo: gpio::Gpio19<gpio::Unknown>,
+    cs: gpio::Gpio5<gpio::Unknown>,
+) -> Result<()> {
+    println!("About to initialize the ST7789 LED driver");
+
+    let config = <spi::config::Config as Default>::default().baudrate(26.MHz().into());
+
+    let mut backlight = backlight.into_output()?;
+    backlight.set_high()?;
+
+    let di = SPIInterfaceNoCS::new(
+        spi::Master::<spi::SPI2, _, _, _, _>::new(
+            spi,
+            spi::Pins {
+                sclk,
+                sdo,
+                sdi: Option::<gpio::Gpio21<gpio::Unknown>>::None,
+                cs: Some(cs),
+            },
+            config,
+        )?,
+        dc.into_output()?,
+    );
+
+    let mut display = st7789::ST7789::new(
+        di,
+        rst.into_output()?,
+        // SP7789V is designed to drive 240x320 screens
+        240,
+        320,
+    );
+
+    AnyError::<st7789::Error<_>>::wrap(|| {
+        display.init(&mut delay::Ets)?;
+        display.set_orientation(st7789::Orientation::Portrait)?;
+
+        led_draw(&mut display)
+    })
+}
+
+fn led_draw<D>(display: &mut D) -> Result<(), D::Error>
+where
+    D: DrawTarget + Dimensions,
+    D::Color: From<Rgb565>,
+{
+    display.clear(Rgb565::BLACK.into())?;
+
+    Rectangle::new(display.bounding_box().top_left, display.bounding_box().size)
+        .into_styled(
+            PrimitiveStyleBuilder::new()
+                .fill_color(Rgb565::BLUE.into())
+                .stroke_color(Rgb565::YELLOW.into())
+                .stroke_width(1)
+                .build(),
+        )
+        .draw(display)?;
+
+    Text::new(
+        "Hello Rust!",
+        Point::new(10, (display.bounding_box().size.height - 10) as i32 / 2),
+        MonoTextStyle::new(&FONT_10X20, Rgb565::WHITE.into()),
+    )
+    .draw(display)?;
+
+    println!("LED rendering done");
+
+    Ok(())
 }
 
 fn wifi(
