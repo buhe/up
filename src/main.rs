@@ -15,9 +15,9 @@ use esp_idf_svc::http::client::EspHttpClient;
 use embedded_hal::digital::v2::OutputPin;
 
 use esp_idf_hal::delay;
-use esp_idf_hal::gpio;
+use esp_idf_hal::gpio::{self, Gpio18, Unknown, Gpio19, Gpio21, Gpio5, Gpio16, Output, Gpio23};
 use esp_idf_hal::prelude::*;
-use esp_idf_hal::spi;
+use esp_idf_hal::spi::{self, Master, SPI2};
 
 use display_interface_spi::SPIInterfaceNoCS;
 
@@ -27,6 +27,7 @@ use embedded_graphics::prelude::*;
 use embedded_graphics::primitives::*;
 use embedded_graphics::text::*;
 use profile::Profile;
+use st7789::ST7789;
 
 const SSID: &str = "Xiaomi_85FE";
 const PASS: &str = "aa11aa041212";
@@ -73,7 +74,7 @@ fn main() -> Result<()> {
     )?;
     // let users: Vec<User> = serde_json::from_str(&str).unwrap();
     // println!("Hello, world!bugu22: {:?}", users.len());
-    lcd(
+    let mut display = lcd(
         pins.gpio4,
         pins.gpio16,
         pins.gpio23,
@@ -90,8 +91,9 @@ fn main() -> Result<()> {
         // res.push(github::init(&mut client)?);
         res.push(bilibili::init(&mut client)?);
         
-        for r in  res {
-            println!("{:?}", r);
+        for p in  res {
+            println!("{:?}", &p);
+            AnyError::<st7789::Error<_>>::wrap(|| { draw_profile(&mut display, &p) })?;
         }
         drop(client);
         // drop(wifi);
@@ -111,7 +113,7 @@ fn lcd(
     sclk: gpio::Gpio18<gpio::Unknown>,
     sdo: gpio::Gpio19<gpio::Unknown>,
     cs: gpio::Gpio5<gpio::Unknown>,
-) -> Result<()> {
+) -> Result<ST7789<SPIInterfaceNoCS<Master<SPI2, Gpio18<Unknown>, Gpio19<Unknown>, Gpio21<Unknown>, Gpio5<Unknown>>, Gpio16<Output>>, Gpio23<Output>>>{
     println!("About to initialize the ST7789 LED driver");
 
     let config = <spi::config::Config as Default>::default().baudrate(26.MHz().into());
@@ -133,7 +135,7 @@ fn lcd(
         dc.into_output()?,
     );
 
-    let mut display = st7789::ST7789::new(
+    let mut display:  ST7789<SPIInterfaceNoCS<Master<SPI2, Gpio18<Unknown>, Gpio19<Unknown>, Gpio21<Unknown>, Gpio5<Unknown>>, Gpio16<Output>>, Gpio23<Output>> = st7789::ST7789::new(
         di,
         rst.into_output()?,
         // SP7789V is designed to drive 240x320 screens
@@ -146,7 +148,8 @@ fn lcd(
         display.set_orientation(st7789::Orientation::Portrait)?;
 
         draw_hi(&mut display)
-    })
+    })?;
+    Ok(display)
 }
 
 fn draw_hi<D>(display: &mut D) -> Result<(), D::Error>
@@ -196,13 +199,13 @@ where
         .draw(display)?;
 
     Text::new(
-        "Hello Rust!",
+        format!("{:?}", p).as_str(),
         Point::new(10, (display.bounding_box().size.height - 10) as i32 / 2),
         MonoTextStyle::new(&FONT_10X20, Rgb565::WHITE.into()),
     )
     .draw(display)?;
 
-    println!("LED rendering done");
+    println!("LED rendering profile done");
 
     Ok(())
 }
