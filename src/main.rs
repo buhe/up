@@ -26,6 +26,7 @@ use embedded_graphics::pixelcolor::*;
 use embedded_graphics::prelude::*;
 use embedded_graphics::primitives::*;
 use embedded_graphics::text::*;
+use profile::Profile;
 
 const SSID: &str = "Xiaomi_85FE";
 const PASS: &str = "aa11aa041212";
@@ -144,11 +145,40 @@ fn lcd(
         display.init(&mut delay::Ets)?;
         display.set_orientation(st7789::Orientation::Portrait)?;
 
-        led_draw(&mut display)
+        draw_hi(&mut display)
     })
 }
 
-fn led_draw<D>(display: &mut D) -> Result<(), D::Error>
+fn draw_hi<D>(display: &mut D) -> Result<(), D::Error>
+where
+    D: DrawTarget + Dimensions,
+    D::Color: From<Rgb565>,
+{
+    display.clear(Rgb565::BLACK.into())?;
+
+    Rectangle::new(display.bounding_box().top_left, display.bounding_box().size)
+        .into_styled(
+            PrimitiveStyleBuilder::new()
+                .fill_color(Rgb565::BLUE.into())
+                .stroke_color(Rgb565::YELLOW.into())
+                .stroke_width(1)
+                .build(),
+        )
+        .draw(display)?;
+
+    Text::new(
+        "Hello Rust!",
+        Point::new(10, (display.bounding_box().size.height - 10) as i32 / 2),
+        MonoTextStyle::new(&FONT_10X20, Rgb565::WHITE.into()),
+    )
+    .draw(display)?;
+
+    println!("LED rendering done");
+
+    Ok(())
+}
+
+fn draw_profile<D>(display: &mut D, p: &Profile) -> Result<(), D::Error>
 where
     D: DrawTarget + Dimensions,
     D::Color: From<Rgb565>,
