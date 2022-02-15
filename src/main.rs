@@ -3,6 +3,12 @@ use std::{thread, time::Duration};
 use anyhow::bail;
 use anyhow::Result;
 
+use embedded_graphics::prelude::*;
+use embedded_graphics::image::{Image, ImageRaw};
+use embedded_graphics::pixelcolor::raw::LittleEndian;
+use embedded_graphics::primitives::*;
+use embedded_graphics::text::*;
+
 // use embedded_svc::ping::Ping;
 use embedded_svc::utils::anyerror::*;
 use embedded_svc::wifi::Wifi;
@@ -23,9 +29,7 @@ use display_interface_spi::SPIInterfaceNoCS;
 
 use embedded_graphics::mono_font::{ascii::FONT_10X20, MonoTextStyle};
 use embedded_graphics::pixelcolor::*;
-use embedded_graphics::prelude::*;
-use embedded_graphics::primitives::*;
-use embedded_graphics::text::*;
+
 use profile::Profile;
 use st7789::ST7789;
 
@@ -50,30 +54,11 @@ fn main() -> Result<()> {
 
     let peripherals = Peripherals::take().unwrap();
     let pins = peripherals.pins;
-
-    // let url = String::from("https://api.github.com/users/buhe/followers");
-
-    // info!("About to fetch content from {}", url);
-
-    // let mut client = EspHttpClient::new_default()?;
-
-    // let response = client.get(&url)?.submit()?;
-
-    // let body: Result<Vec<u8>, _> = Bytes::<_, 64>::new(response.reader()).collect();
-
-    // let body = body?;
-    // let str = String::from_utf8_lossy(&body).into_owned();
-    // println!(
-    //     "Body \n{:?}",
-    //     &str
-    // );
     let _wifi = wifi(
         netif_stack.clone(),
         sys_loop_stack.clone(),
         default_nvs.clone(),
     )?;
-    // let users: Vec<User> = serde_json::from_str(&str).unwrap();
-    // println!("Hello, world!bugu22: {:?}", users.len());
     let mut display = lcd(
         pins.gpio4,
         pins.gpio16,
@@ -183,7 +168,7 @@ where
 
 fn draw_profile<D>(display: &mut D, p: &Profile) -> Result<(), D::Error>
 where
-    D: DrawTarget + Dimensions,
+    D: DrawTarget<Color = Rgb565> + Dimensions,
     D::Color: From<Rgb565>,
 {
     display.clear(Rgb565::BLACK.into())?;
@@ -198,9 +183,18 @@ where
         )
         .draw(display)?;
 
+    // println!("jpg is {}", &p.avatar);
+    // let img = ImageReader::open(&p.avatar).unwrap().decode().unwrap();
+    // let data = img.as_bytes();
+    // println!("jpg data is {:?}", &data);
+    Image::new(
+        &ImageRaw::<Rgb565, LittleEndian>::new(include_bytes!("../images/tv.raw"), 100), 
+        Point::new(10, (display.bounding_box().size.height - 10) as i32 / 2))
+    .draw(display)?;
+
     Text::new(
         format!("{:?}", p).as_str(),
-        Point::new(10, (display.bounding_box().size.height - 10) as i32 / 2),
+        Point::new(100, (display.bounding_box().size.height - 10) as i32 / 2),
         MonoTextStyle::new(&FONT_10X20, Rgb565::WHITE.into()),
     )
     .draw(display)?;
