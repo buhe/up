@@ -186,11 +186,11 @@ where
     // println!("jpg is {}", &p.avatar);
     // let img = ImageReader::open(&p.avatar).unwrap().decode().unwrap();
     // let data = img.as_bytes();
-    // println!("jpg data is {:?}", &data);
-    Image::new(
-        &ImageRaw::<Rgb565, LittleEndian>::new(include_bytes!("../images/tv.raw"), 100), 
-        Point::new(10, (display.bounding_box().size.height - 10) as i32 / 2))
-    .draw(display)?;
+    // println!("jpg data is {:?}", include_bytes!("../images/tv.raw"));
+    // Image::new(
+    //     &ImageRaw::<Rgb565, LittleEndian>::new(include_bytes!("../images/tv.raw"), 100), 
+    //     Point::new(10, (display.bounding_box().size.height - 10) as i32 / 2))
+    // .draw(display)?;
 
     Text::new(
         format!("{:?}", p).as_str(),
