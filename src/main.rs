@@ -130,41 +130,11 @@ fn lcd(
 
     AnyError::<st7789::Error<_>>::wrap(|| {
         display.init(&mut delay::Ets)?;
-        display.set_orientation(st7789::Orientation::Landscape)?;
-
-        draw_hi(&mut display)
+        display.set_orientation(st7789::Orientation::Landscape)
     })?;
     Ok(display)
 }
 
-fn draw_hi<D>(display: &mut D) -> Result<(), D::Error>
-where
-    D: DrawTarget + Dimensions,
-    D::Color: From<Rgb565>,
-{
-    display.clear(Rgb565::BLACK.into())?;
-
-    Rectangle::new(display.bounding_box().top_left, display.bounding_box().size)
-        .into_styled(
-            PrimitiveStyleBuilder::new()
-                .fill_color(Rgb565::BLUE.into())
-                .stroke_color(Rgb565::YELLOW.into())
-                .stroke_width(1)
-                .build(),
-        )
-        .draw(display)?;
-
-    Text::new(
-        "Hello Rust!",
-        Point::new(10, (display.bounding_box().size.height - 10) as i32 / 2),
-        MonoTextStyle::new(&FONT_10X20, Rgb565::WHITE.into()),
-    )
-    .draw(display)?;
-
-    println!("LED rendering done");
-
-    Ok(())
-}
 
 fn draw_profile<D>(display: &mut D, p: &Profile) -> Result<(), D::Error>
 where
@@ -173,15 +143,15 @@ where
 {
     display.clear(Rgb565::BLACK.into())?;
 
-    Rectangle::new(display.bounding_box().top_left, display.bounding_box().size)
-        .into_styled(
-            PrimitiveStyleBuilder::new()
-                .fill_color(Rgb565::BLUE.into())
-                .stroke_color(Rgb565::YELLOW.into())
-                .stroke_width(1)
-                .build(),
-        )
-        .draw(display)?;
+    // Rectangle::new(display.bounding_box().top_left, display.bounding_box().size)
+    //     .into_styled(
+    //         PrimitiveStyleBuilder::new()
+    //             .fill_color(Rgb565::BLUE.into())
+    //             .stroke_color(Rgb565::YELLOW.into())
+    //             .stroke_width(1)
+    //             .build(),
+    //     )
+    //     .draw(display)?;
 
     // println!("jpg is {}", &p.avatar);
     // let img = ImageReader::open(&p.avatar).unwrap().decode().unwrap();
@@ -193,7 +163,7 @@ where
     // .draw(display)?;
 
     Text::new(
-        format!("folloers: {}\nfollowing: {}", &p.followers, &p.followings).as_str(),
+        format!("nick name: {}\nfolloers: {}\nfollowing: {}" ,&p.display ,&p.followers, &p.followings).as_str(),
         Point::new(100, (display.bounding_box().size.height - 10) as i32 / 2),
         MonoTextStyle::new(&FONT_10X20, Rgb565::WHITE.into()),
     )
