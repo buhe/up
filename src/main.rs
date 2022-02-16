@@ -61,11 +61,11 @@ fn main() -> Result<()> {
     )?;
     let mut display = lcd(
         pins.gpio4,
-        pins.gpio16,
+        pins.gpio16,//a0
         pins.gpio23,
         peripherals.spi2,
         pins.gpio18,
-        pins.gpio19,
+        pins.gpio19,//sda
         pins.gpio5,
     )?;
     let mut i = 0;
@@ -124,13 +124,13 @@ fn lcd(
         di,
         rst.into_output()?,
         // SP7789V is designed to drive 240x320 screens
-        240,
         320,
+        240,
     );
 
     AnyError::<st7789::Error<_>>::wrap(|| {
         display.init(&mut delay::Ets)?;
-        display.set_orientation(st7789::Orientation::Portrait)?;
+        display.set_orientation(st7789::Orientation::Landscape)?;
 
         draw_hi(&mut display)
     })?;
@@ -193,7 +193,7 @@ where
     // .draw(display)?;
 
     Text::new(
-        format!("{:?}", p).as_str(),
+        format!("folloers: {}\nfollowing: {}", &p.followers, &p.followings).as_str(),
         Point::new(100, (display.bounding_box().size.height - 10) as i32 / 2),
         MonoTextStyle::new(&FONT_10X20, Rgb565::WHITE.into()),
     )
