@@ -4,9 +4,7 @@ use anyhow::bail;
 use anyhow::Result;
 
 use embedded_graphics::prelude::*;
-use embedded_graphics::image::{Image, ImageRaw};
-use embedded_graphics::pixelcolor::raw::LittleEndian;
-use embedded_graphics::primitives::*;
+use embedded_graphics::image::{Image, ImageRaw, ImageRawBE, ImageRawLE};
 use embedded_graphics::text::*;
 
 // use embedded_svc::ping::Ping;
@@ -123,7 +121,6 @@ fn lcd(
     let mut display:  ST7789<SPIInterfaceNoCS<Master<SPI2, Gpio18<Unknown>, Gpio19<Unknown>, Gpio21<Unknown>, Gpio5<Unknown>>, Gpio16<Output>>, Gpio23<Output>> = st7789::ST7789::new(
         di,
         rst.into_output()?,
-        // SP7789V is designed to drive 240x320 screens
         320,
         240,
     );
@@ -143,24 +140,11 @@ where
 {
     display.clear(Rgb565::BLACK.into())?;
 
-    // Rectangle::new(display.bounding_box().top_left, display.bounding_box().size)
-    //     .into_styled(
-    //         PrimitiveStyleBuilder::new()
-    //             .fill_color(Rgb565::BLUE.into())
-    //             .stroke_color(Rgb565::YELLOW.into())
-    //             .stroke_width(1)
-    //             .build(),
-    //     )
-    //     .draw(display)?;
-
-    // println!("jpg is {}", &p.avatar);
-    // let img = ImageReader::open(&p.avatar).unwrap().decode().unwrap();
-    // let data = img.as_bytes();
-    // println!("jpg data is {:?}", include_bytes!("../images/tv.raw"));
-    // Image::new(
-    //     &ImageRaw::<Rgb565, LittleEndian>::new(include_bytes!("../images/tv.raw"), 100), 
-    //     Point::new(10, (display.bounding_box().size.height - 10) as i32 / 2))
-    // .draw(display)?;
+    let raw_image = ImageRawLE::<Rgb565>::new(include_bytes!("../images/tv.raw"), 16);
+    Image::new(
+        &raw_image, 
+        Point::new(10, (display.bounding_box().size.height - 10) as i32 / 2))
+    .draw(display)?;
 
     Text::new(
         format!("nick name: {}\nfolloers: {}\nfollowing: {}" ,&p.display ,&p.followers, &p.followings).as_str(),
