@@ -4,7 +4,7 @@ use anyhow::bail;
 use anyhow::Result;
 
 use embedded_graphics::prelude::*;
-use embedded_graphics::image::{Image, ImageRaw, ImageRawBE, ImageRawLE};
+use embedded_graphics::image::{Image, ImageRawLE};
 use embedded_graphics::text::*;
 
 // use embedded_svc::ping::Ping;
