@@ -1,10 +1,10 @@
 ## Up
 
 ```
-cargo install espflash --git https://github.com/esp-rs/espflash.git --rev 4efad54 --force
+pip install esptool
 cargo install espmonitor
 ```
-http://api.bilibili.com/x/space/myinfo
+brower visit : http://api.bilibili.com/x/space/myinfo get mid feild.
 ### Use
 ```
 make flash
