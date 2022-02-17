@@ -141,10 +141,10 @@ where
     display.clear(Rgb565::BLACK.into())?;
     let data =  include_bytes!("../images/tv.raw");
     println!("data : {:?}", data);
-    let raw_image = ImageRawLE::<Rgb565>::new(data, 32);
+    let raw_image = ImageRawLE::<Rgb565>::new(data, 64);
     Image::new(
         &raw_image, 
-        Point::new(10, (display.bounding_box().size.height - 10) as i32 / 2))
+        Point::new(16, (display.bounding_box().size.height - 32) as i32 / 2))
     .draw(display)?;
 
     Text::new(
