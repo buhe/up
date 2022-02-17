@@ -139,8 +139,9 @@ where
     D::Color: From<Rgb565>,
 {
     display.clear(Rgb565::BLACK.into())?;
-
-    let raw_image = ImageRawLE::<Rgb565>::new(include_bytes!("../images/tv.raw"), 16);
+    let data =  include_bytes!("../images/tv.raw");
+    println!("data : {:?}", data);
+    let raw_image = ImageRawLE::<Rgb565>::new(data, 32);
     Image::new(
         &raw_image, 
         Point::new(10, (display.bounding_box().size.height - 10) as i32 / 2))
