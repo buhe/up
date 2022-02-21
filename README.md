@@ -20,9 +20,9 @@ cargo build --release
 pip install esptool
 ```
 #### Use it
-Download bin from https://github.com/buhe/up/releases
 ```
-esptool.py --chip esp32 -p /dev/cu.usbserial-0001 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 40m --flash_size detect 0x10000 up.bin
+esptool.py --chip esp32 elf2image target/xtensa-esp32-espidf/release/up
+esptool.py --chip esp32 -p /dev/cu.usbserial-0001 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 40m --flash_size detect 0x10000 target/xtensa-esp32-espidf/release/up.bin
 ```
 -p {set your dev port}
 ### View
