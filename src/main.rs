@@ -31,11 +31,8 @@ use embedded_graphics::pixelcolor::*;
 use profile::Profile;
 use st7789::ST7789;
 
-const SSID: &str = "Xiaomi_85FE";
-const PASS: &str = "aa11aa041212";
-
-// const SSID: &str = env!("RUST_ESP32_STD_DEMO_WIFI_SSID");
-// const PASS: &str = env!("RUST_ESP32_STD_DEMO_WIFI_PASS");
+const SSID: &str = env!("SSID");
+const PASS: &str = env!("PASS");
 
 // mod github;
 mod bilibili;
@@ -69,7 +66,12 @@ fn main() -> Result<()> {
     let mut i = 0;
     loop {
         // println!("...start...");
-        let mut client = EspHttpClient::new_default()?;
+        let mut client;
+        let res = EspHttpClient::new_default();
+        match res {
+            Ok(c) => client = c,
+            Err(_) => continue,
+        }
         let mut res = vec![];
         // res.push(github::init(&mut client)?);
         res.push(bilibili::init(&mut client)?);

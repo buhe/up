@@ -4,9 +4,10 @@ use anyhow::Result;
 use embedded_svc::io::Bytes;
 use esp_idf_svc::http::client::EspHttpClient;
 use embedded_svc::http::{client::*};
-
+const MID: &str = env!("MID");
+// const API: String = 
 pub fn init(client: &mut EspHttpClient) -> Result<Profile> {
-    let url = String::from("https://api.bilibili.com/x/web-interface/card?mid=9798718");
+    let url = format!("https://api.bilibili.com/x/web-interface/card?mid={}", MID);
 
     // info!("About to fetch content from {}", url);
 
