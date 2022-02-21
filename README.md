@@ -2,9 +2,9 @@
 ### Compile
 brower visit : http://api.bilibili.com/x/space/myinfo get mid feild.
 ```
-export SSID="Xiaomi_85FE"
-export PASS="aa11aa041212"
-export MID="9798718"
+export SSID="You wifi name"
+export PASS="You wifi password"
+export MID="You bilibili mid"
 cargo build --release
 ```
 ### Flash
