@@ -13,6 +13,11 @@ esptool.py --chip esp32 -p /dev/cu.usbserial-0001 -b 460800 --before=default_res
 ```
 -p {set your dev port}
 ### Compile
+1. Install rust.
+
+2. Add Xtensa architecture support.
+
+3. Get your mid.
 brower visit : http://api.bilibili.com/x/space/myinfo get mid feild.
 ```
 export SSID="You wifi name"
