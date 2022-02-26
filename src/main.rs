@@ -56,7 +56,7 @@ fn main() -> Result<()> {
     )?;
     let mut display = lcd(
         pins.gpio4,
-        pins.gpio16,//a0
+        pins.gpio16,//ao
         pins.gpio23,
         peripherals.spi2,
         pins.gpio18,

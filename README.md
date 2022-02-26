@@ -1,6 +1,14 @@
 ## Up
 ### Hardware wire
-Todo...
+Left is st7789,right is esp32.
+- gnd-gnd
+- vcc-3v3
+- scl-gpio18
+- sda-gpio19
+- reset-gpio23
+- ao-gpio16
+- cs-gpio5
+- bl-gpio4
 ### Compile
 1. Install rust.
 
