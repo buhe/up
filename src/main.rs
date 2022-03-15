@@ -59,7 +59,7 @@ fn main() -> Result<()> {
         pins.gpio16,//ao
         pins.gpio23,
         peripherals.spi2,
-        pins.gpio18,
+        pins.gpio18,//scl
         pins.gpio19,//sda
         pins.gpio5,
     )?;
